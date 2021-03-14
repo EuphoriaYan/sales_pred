@@ -40,4 +40,4 @@ def load_model(args):
 
 if __name__ == '__main__':
     args = parse_args()
-    dataset = load_dataset()
+    dataset = load_dataset(args)
