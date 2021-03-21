@@ -75,6 +75,8 @@ if __name__ == '__main__':
     args = parse_args()
     train_dataloader, valid_dataloader = load_dataset(args)
 
+    os.makedirs(args.save_dir, exist_ok=True)
+
     model = load_model(args)
     model.to(device)
 
