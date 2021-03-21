@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+from borax.calendars.lunardate import LunarDate
 
 
 class SalesDataset(Dataset):
@@ -23,8 +24,12 @@ class SalesDataset(Dataset):
         """
         frame = pd.read_excel(file)
         # self.frame = self.frame.groupby(by='商品一级品类')
-        frame['日期'] = pd.to_datetime(frame['日期'], format='%Y%m%d')
-        frame['weekday'] = frame['日期'].dt.weekday
+        frame['data'] = pd.to_datetime(frame['日期'], format='%Y%m%d')
+        frame['year'] = frame['data'].dt.year
+        frame['month'] = frame['data'].dt.month
+        frame['day'] = frame['data'].dt.day
+        frame['weekday'] = frame['data'].dt.weekday
+        frame['dayofyear'] = frame['data'].dt.dayofyear
 
         self.frame = frame
 
@@ -36,6 +41,10 @@ class SalesDataset(Dataset):
 
     def head(self):
         return self.frame.head()
+
+
+def convert_dataset_to_features(datset):
+
 
 
 if __name__ == '__main__':

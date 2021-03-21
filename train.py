@@ -21,13 +21,13 @@ def parse_args():
     parser.add_argument('--dataset_path', required=True, type=str)
 
     args = parser.parse_args()
-    args = vars(args)
+    # args = vars(args)
     return args
 
 
 def load_dataset(args):
-    pass
-
+    dataset = SalesDataset(args.dataset_path)
+    return dataset
 
 
 def load_model(args):
