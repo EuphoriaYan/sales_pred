@@ -29,7 +29,7 @@ class SalesDataset(Dataset):
         frame['month'] = frame['data'].dt.month
         frame['day'] = frame['data'].dt.day
         frame['weekday'] = frame['data'].dt.weekday
-        frame['dayofyear'] = frame['data'].dt.dayofyear
+        # frame['dayofyear'] = frame['data'].dt.dayofyear
 
         self.frame = frame
 
@@ -43,8 +43,16 @@ class SalesDataset(Dataset):
         return self.frame.head()
 
 
-def convert_dataset_to_features(datset):
-
+def convert_dataset_to_features(dataset):
+    # print(dataset.head())
+    rides = pd.DataFrame()
+    dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
+    for each in dummy_fields:
+        # 利用pandas对象，我们可以很方便地将一个类型变量属性进行one-hot编码，变成多个属性
+        dummies = pd.get_dummies(dataset[each], prefix=each, drop_first=False)
+        rides = pd.concat([rides, dummies], axis=1)
+    rides = pd.concat([rides, dataset['销量']], axis=1)
+    return rides
 
 
 if __name__ == '__main__':
