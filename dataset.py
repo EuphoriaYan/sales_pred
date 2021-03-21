@@ -21,23 +21,26 @@ class SalesDataset(Dataset):
         Args:
             file (string): Path to the file with annotations.
         """
-        self.frame = pd.read_excel(file)
+        frame = pd.read_excel(file)
         # self.frame = self.frame.groupby(by='商品一级品类')
-        self.frame['日期'] = pd.to_datetime(self.frame['日期'], format='%Y%m%d')
+        frame['日期'] = pd.to_datetime(frame['日期'], format='%Y%m%d')
+        frame['weekday'] = frame['日期'].dt.weekday
+
+        self.frame = frame
 
     def __len__(self):
         return len(self.frame)
 
     def __getitem__(self, idx):
-        print(idx)
-        landmarks = self.frame.get_chunk(128).values
-        # landmarks = self.landmarks_frame.ix[idx, 1:].values.astype('float')
-        return landmarks
+        return self.frame[idx]
+
+    def head(self):
+        return self.frame.head()
 
 
 if __name__ == '__main__':
     dataset = SalesDataset('日期-品类-销量数据.xlsx')
     print(len(dataset))
-    print(dataset.frame.head())
+    print(dataset.head())
 
 
