@@ -198,3 +198,6 @@ $RECYCLE.BIN/
 
 # data
 data_v*/
+
+# checkpoints
+checkpoints/
