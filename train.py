@@ -13,9 +13,10 @@ import torch
 from torch import nn
 from torch.optim import Adam, AdamW, Adadelta
 from torch.utils.data import TensorDataset, DataLoader
-from dataset import SalesDataset, convert_dataset_to_features
+from dataset import SalesDataset, convert_dataset_to_mlp_features, convert_dataset_to_lstm_features
 from model import *
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.model_selection import train_test_split
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
@@ -42,7 +43,10 @@ def parse_args():
 
 def load_dataset(args):
     dataset = SalesDataset(args.dataset_path)
-    features = convert_dataset_to_features(dataset)
+    if args.model_type == 'mlp':
+        features = convert_dataset_to_mlp_features(dataset)
+    else:
+        features = convert_dataset_to_lstm_features(dataset)
     print(features.head())
     # example_len = len(features)
 

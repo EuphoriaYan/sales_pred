@@ -51,7 +51,7 @@ class SalesDataset(Dataset):
         return self.frame.head()
 
 
-def convert_dataset_to_features(dataset):
+def convert_dataset_to_mlp_features(dataset):
     # print(dataset.head())
     rides = pd.DataFrame()
     dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
@@ -65,7 +65,17 @@ def convert_dataset_to_features(dataset):
 
 def convert_dataset_to_lstm_features(dataset):
     rides = pd.DataFrame()
-    # TODO
+    dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
+    for each in dummy_fields:
+        # 利用pandas对象，我们可以很方便地将一个类型变量属性进行one-hot编码，变成多个属性
+        dummies = pd.get_dummies(dataset[each], prefix=each, drop_first=False)
+        rides = pd.concat([rides, dummies], axis=1)
+    rides = pd.concat([rides, dataset['sales_norm']], axis=1)
+
+    good_rides = dict()
+    for good in dataset.goods:
+        good_df = rides[rides[''] == 1]
+    return rides
 
 
 if __name__ == '__main__':
