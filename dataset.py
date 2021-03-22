@@ -63,6 +63,10 @@ def convert_dataset_to_features(dataset):
 
     return rides
 
+def convert_dataset_to_lstm_features(dataset):
+    rides = pd.DataFrame()
+    # TODO
+
 
 if __name__ == '__main__':
     dataset = SalesDataset('日期-品类-销量数据.xlsx')
