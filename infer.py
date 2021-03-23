@@ -48,8 +48,8 @@ def load_dataset(args):
 
     # example_len = len(features)
 
-    valid_X = torch.Tensor(valid_X[:50])
-    valid_y = torch.Tensor(valid_y[:50])
+    valid_X = torch.Tensor(valid_X[:1])
+    valid_y = torch.Tensor(valid_y[:1])
 
     dataset = TensorDataset(valid_X, valid_y)
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
@@ -81,8 +81,8 @@ if __name__ == '__main__':
             batch = [f.to(device) for f in batch]
             feature, sales = batch
             pred = model(feature)
-            sales = sales.detach().squeeze(-1).cpu().tolist()
-            pred = pred.detach().squeeze(-1).cpu().tolist()
+            sales = sales.detach().view(-1).cpu().tolist()
+            pred = pred.detach().view(-1).cpu().tolist()
             preds.extend(pred)
             golds.extend(sales)
     model.train()
