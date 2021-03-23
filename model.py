@@ -37,15 +37,22 @@ class lstm(nn.Module):
         super().__init__()
         self.in_feature = in_feature
         self.bidirectional = bidirectional
-        self.RNN = nn.LSTM(in_feature, in_feature, batch_first=True, bidirectional=bidirectional)
+        self.linear1 = nn.Linear(in_feature, in_feature)
+        self.RNN = nn.LSTM(
+            input_size=in_feature,
+            hidden_size=in_feature,
+            batch_first=True,
+            bidirectional=True if bidirectional else False
+        )
         if bidirectional:
-            self.linear = nn.Linear(in_feature * 2, 1)
+            self.linear2 = nn.Linear(in_feature * 2, 1)
         else:
-            self.linear = nn.Linear(in_feature, 1)
+            self.linear2 = nn.Linear(in_feature, 1)
 
     def forward(self, input):
-        x = self.RNN(input)
-        x = self.linear(x)
+        x = self.linear1(input)
+        x, (hn, cn) = self.RNN(x)
+        x = self.linear2(x)
         return x
 
 

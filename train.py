@@ -36,6 +36,7 @@ def parse_args():
     parser.add_argument('--lr', type=float, default=3e-4)
     parser.add_argument('--epoch', type=int, default=10)
     parser.add_argument('--loss', choices=['smoothl1', 'l1', 'mse'], default='l1')
+    parser.add_argument('--batch_size', type=int, default=64)
 
     args = parser.parse_args()
     # args = vars(args)
@@ -57,8 +58,8 @@ def load_dataset(args):
     train_dataset = TensorDataset(train_X, train_y)
     valid_dataset = TensorDataset(valid_X, valid_y)
 
-    train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-    valid_dataloader = DataLoader(valid_dataset, batch_size=64, shuffle=False)
+    train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False)
     return train_dataloader, valid_dataloader
 
 
@@ -111,8 +112,8 @@ if __name__ == '__main__':
                 valid_batch = [f.to(device) for f in valid_batch]
                 feature, sales = valid_batch
                 pred = model(feature)
-                sales = sales.detach().cpu().tolist()
-                pred = pred.detach().cpu().tolist()
+                sales = sales.detach().squeeze(-1).cpu().tolist()
+                pred = pred.detach().squeeze(-1).cpu().tolist()
                 preds.extend(pred)
                 golds.extend(sales)
             rmse = mean_squared_error(golds, preds, squared=False)
@@ -120,10 +121,10 @@ if __name__ == '__main__':
             print(f'rmse: {np.round(rmse, 6)}, mae: {np.round(mae, 6)}')
             if rmse < best_rmse:
                 best_rmse = rmse
-                torch.save(model.state_dict(), os.path.join(args.save_dir, 'best_rmse.pth'))
+                torch.save(model.state_dict(), os.path.join(args.save_dir, args.model_type + '_best_rmse.pth'))
             if mae < best_mae:
                 best_mae = mae
-                torch.save(model.state_dict(), os.path.join(args.save_dir, 'best_mae.pth'))
+                torch.save(model.state_dict(), os.path.join(args.save_dir, args.model_type + '_best_mae.pth'))
             print(f'best rmse: {np.round(best_rmse, 6)}, best mae: {np.round(best_mae, 6)}')
         model.train()
 

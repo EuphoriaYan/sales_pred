@@ -20,6 +20,25 @@ import matplotlib.pyplot as plt
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model_type', required=True, type=str)
+    parser.add_argument('--dataset_path', required=True, type=str)
+
+    parser.add_argument('--ckpt_path', type=str, default='checkpoints/best_rmse.pth')
+
+    ''' Model Architecture '''
+    parser.add_argument('--in_feature', type=int, default=68)
+    parser.add_argument('--bidirectional', type=int, default=1)
+
+    ''' Hyper Parameter '''
+    parser.add_argument('--batch_size', type=int, default=64)
+
+    args = parser.parse_args()
+    # args = vars(args)
+    return args
+
+
 def load_dataset(args):
     dataset = SalesDataset(args.dataset_path)
     if args.model_type == 'mlp':
@@ -33,24 +52,8 @@ def load_dataset(args):
     valid_y = torch.Tensor(valid_y[:50])
 
     dataset = TensorDataset(valid_X, valid_y)
-    dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
+    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
     return dataloader
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model_type', required=True, type=str)
-    parser.add_argument('--dataset_path', required=True, type=str)
-
-    parser.add_argument('--ckpt_path', type=str, default='checkpoints/best_rmse.pth')
-
-    ''' Model Architecture '''
-    parser.add_argument('--in_feature', type=int, default=68)
-    parser.add_argument('--bidirectional', type=int, default=1)
-
-    args = parser.parse_args()
-    # args = vars(args)
-    return args
 
 
 def load_model(args):
@@ -78,8 +81,8 @@ if __name__ == '__main__':
             batch = [f.to(device) for f in batch]
             feature, sales = batch
             pred = model(feature)
-            sales = sales.detach().cpu().tolist()
-            pred = pred.detach().cpu().tolist()
+            sales = sales.detach().squeeze(-1).cpu().tolist()
+            pred = pred.detach().squeeze(-1).cpu().tolist()
             preds.extend(pred)
             golds.extend(sales)
     model.train()

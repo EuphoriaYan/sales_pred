@@ -67,7 +67,7 @@ def get_dummy_dataframe(dataset, dummy_fields):
     return good_rides
 
 
-def convert_dataset_to_mlp_features(dataset, valid_num=50):
+def convert_dataset_to_mlp_features(dataset, valid_size=0.1):
     # print(dataset.head())
     dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
     good_rides = get_dummy_dataframe(dataset, dummy_fields)
@@ -80,7 +80,7 @@ def convert_dataset_to_mlp_features(dataset, valid_num=50):
         features = features_array[:, :-1]
         sales = features_array[:, -1:]
 
-        tX, vX, ty, vy = train_test_split(features, sales, test_size=0.1)
+        tX, vX, ty, vy = train_test_split(features, sales, test_size=valid_size)
         train_features.append(tX)
         train_sales.append(ty)
         valid_features.append(vX)
@@ -98,7 +98,8 @@ def convert_dataset_to_mlp_features(dataset, valid_num=50):
     return train_features, train_sales, valid_features, valid_sales
 
 
-def convert_dataset_to_lstm_features(dataset, valid_num=50):
+def convert_dataset_to_lstm_features(dataset, seq_length=30, valid_size=0.1):
+    # print(dataset.head())
     dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
     good_rides = get_dummy_dataframe(dataset, dummy_fields)
     train_features = []
@@ -109,16 +110,27 @@ def convert_dataset_to_lstm_features(dataset, valid_num=50):
         features_array = np.array(dataframe)
         features = features_array[:, :-1]
         sales = features_array[:, -1:]
-        train_features.append(features[:-100])
-        train_sales.append(sales[:-100])
-        valid_features.append(features[-100:])
-        valid_sales.append(sales[-100:])
+        seq_features = []
+        seq_sales = []
+        for i in range(seq_length, len(features)):
+            seq_features.append(features[i-seq_length:i])
+            seq_sales.append(sales[i-seq_length:i])
+        tX, vX, ty, vy = train_test_split(seq_features, seq_sales, test_size=valid_size)
+        train_features.append(tX)
+        train_sales.append(ty)
+        valid_features.append(vX)
+        valid_sales.append(vy)
+        '''
+        train_features.append(features[:-valid_num])
+        train_sales.append(sales[:-valid_num])
+        valid_features.append(features[-valid_num:])
+        valid_sales.append(sales[-valid_num:])
+        '''
     train_features = np.concatenate(train_features, axis=0)
     train_sales = np.concatenate(train_sales, axis=0)
     valid_features = np.concatenate(valid_features, axis=0)
     valid_sales = np.concatenate(valid_sales, axis=0)
-
-    return good_rides
+    return train_features, train_sales, valid_features, valid_sales
 
 
 if __name__ == '__main__':
