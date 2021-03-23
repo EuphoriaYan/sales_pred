@@ -69,21 +69,33 @@ class lstm_attn(nn.Module):
             bidirectional=self.bidirectional
         )
         if self.bidirectional:
+            self.w = nn.Parameter(torch.Tensor(in_feature * 2, in_feature * 2))
+            self.u = nn.Parameter(torch.Tensor(in_feature * 2, 1))
             self.linear2 = nn.Linear(in_feature * 2, 1)
         else:
+            self.w = nn.Parameter(torch.Tensor(in_feature, in_feature))
+            self.u = nn.Parameter(torch.Tensor(in_feature, 1))
             self.linear2 = nn.Linear(in_feature, 1)
 
 
     def forward(self, input):
         x = self.linear1(input)
         x, (hn, cn) = self.RNN(x)
+
         if self.bidirectional:
             hn = hn.view(-1, self.in_feature * 2, 1)
         else:
             hn = hn.view(-1, self.in_feature, 1)
-        attn_weights = torch.bmm(x, hn)
-        attn_weights = torch.softmax(attn_weights, dim=1)
+        attn = torch.bmm(x, hn)
+        attn_weights = torch.softmax(attn, dim=1)
         x = x * attn_weights
+
+        '''
+        u = torch.tanh(torch.matmul(x, self.w))
+        attn = torch.matmul(u, self.u)
+        attn_weights = torch.softmax(attn, dim=1)
+        x = x * attn_weights
+        '''
         x = self.linear2(x)
         return x
 

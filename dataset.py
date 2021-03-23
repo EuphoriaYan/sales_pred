@@ -13,6 +13,7 @@ import torch
 from torch.utils.data import Dataset
 # from borax.calendars.lunardate import LunarDate
 from sklearn.model_selection import train_test_split
+from collections import OrderedDict
 
 
 class SalesDataset(Dataset):
@@ -29,7 +30,7 @@ class SalesDataset(Dataset):
         frame['month'] = frame['data'].dt.month
         frame['day'] = frame['data'].dt.day
         frame['weekday'] = frame['data'].dt.weekday
-        self.goods = set(frame['商品一级品类'].tolist())
+        self.goods = sorted(list(set(frame['商品一级品类'].tolist())))
 
         def sales_norm(dataframe):
             min_value = dataframe['销量'].min()
@@ -60,7 +61,7 @@ def get_dummy_dataframe(dataset, dummy_fields):
         rides = pd.concat([rides, dummies], axis=1)
     rides = pd.concat([rides, dataset['sales_norm']], axis=1)
 
-    good_rides = dict()
+    good_rides = OrderedDict()
     for good in dataset.goods:
         good_df = rides[rides['商品一级品类_' + good] == 1]
         good_rides[good] = good_df
@@ -80,7 +81,7 @@ def convert_dataset_to_mlp_features(dataset, valid_size=0.1):
         features = features_array[:, :-1]
         sales = features_array[:, -1:]
 
-        tX, vX, ty, vy = train_test_split(features, sales, test_size=valid_size)
+        tX, vX, ty, vy = train_test_split(features, sales, test_size=valid_size, random_state=777)
         train_features.append(tX)
         train_sales.append(ty)
         valid_features.append(vX)
@@ -115,7 +116,7 @@ def convert_dataset_to_lstm_features(dataset, seq_length=30, valid_size=0.1):
         for i in range(seq_length, len(features)):
             seq_features.append(features[i-seq_length:i])
             seq_sales.append(sales[i-seq_length:i])
-        tX, vX, ty, vy = train_test_split(seq_features, seq_sales, test_size=valid_size)
+        tX, vX, ty, vy = train_test_split(seq_features, seq_sales, test_size=valid_size, random_state=777)
         train_features.append(tX)
         train_sales.append(ty)
         valid_features.append(vX)

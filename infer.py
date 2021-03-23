@@ -43,8 +43,10 @@ def load_dataset(args):
     dataset = SalesDataset(args.dataset_path)
     if args.model_type == 'mlp':
         train_X, train_y, valid_X, valid_y = convert_dataset_to_mlp_features(dataset)
-    else:
+    elif 'lstm' in args.model_type:
         train_X, train_y, valid_X, valid_y = convert_dataset_to_lstm_features(dataset)
+    else:
+        raise ValueError
 
     # example_len = len(features)
 

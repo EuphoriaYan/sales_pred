@@ -104,7 +104,7 @@ if __name__ == '__main__':
             total_loss.append(loss.item())
             loss.backward()
             optimizer.step()
-        print(f'loss: {np.round(np.average(total_loss), 10)}')
+        print(f'epoch {epoch_idx + 1}/{args.epoch} loss: {np.round(np.average(total_loss), 10)}')
         model.eval()
         with torch.no_grad():
             preds = []
@@ -126,7 +126,11 @@ if __name__ == '__main__':
             if mae < best_mae:
                 best_mae = mae
                 torch.save(model.state_dict(), os.path.join(args.save_dir, args.model_type + '_best_mae.pth'))
-            print(f'best rmse: {np.round(best_rmse, 6)}, best mae: {np.round(best_mae, 6)}')
+            print(f'{args.model_type}: best rmse: {np.round(best_rmse, 6)}, best mae: {np.round(best_mae, 6)}')
         model.train()
 
-
+'''
+    lstm_attn: best rmse: 0.016563, best mae: 0.003375
+    lstm: best rmse: 0.015706, best mae: 0.002414
+    mlp: best rmse: 0.053025, best mae: 0.01685
+'''
