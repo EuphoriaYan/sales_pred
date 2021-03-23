@@ -11,7 +11,8 @@ import pandas as pd
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from borax.calendars.lunardate import LunarDate
+# from borax.calendars.lunardate import LunarDate
+from sklearn.model_selection import train_test_split
 
 
 class SalesDataset(Dataset):
@@ -51,21 +52,8 @@ class SalesDataset(Dataset):
         return self.frame.head()
 
 
-def convert_dataset_to_mlp_features(dataset):
-    # print(dataset.head())
+def get_dummy_dataframe(dataset, dummy_fields):
     rides = pd.DataFrame()
-    dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
-    for each in dummy_fields:
-        # 利用pandas对象，我们可以很方便地将一个类型变量属性进行one-hot编码，变成多个属性
-        dummies = pd.get_dummies(dataset[each], prefix=each, drop_first=False)
-        rides = pd.concat([rides, dummies], axis=1)
-    rides = pd.concat([rides, dataset['sales_norm']], axis=1)
-
-    return rides
-
-def convert_dataset_to_lstm_features(dataset):
-    rides = pd.DataFrame()
-    dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
     for each in dummy_fields:
         # 利用pandas对象，我们可以很方便地将一个类型变量属性进行one-hot编码，变成多个属性
         dummies = pd.get_dummies(dataset[each], prefix=each, drop_first=False)
@@ -74,8 +62,55 @@ def convert_dataset_to_lstm_features(dataset):
 
     good_rides = dict()
     for good in dataset.goods:
-        good_df = rides[rides[''] == 1]
-    return rides
+        good_df = rides[rides['商品一级品类_' + good] == 1]
+        good_rides[good] = good_df
+    return good_rides
+
+
+def convert_dataset_to_mlp_features(dataset):
+    # print(dataset.head())
+    dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
+    good_rides = get_dummy_dataframe(dataset, dummy_fields)
+    train_features = []
+    train_sales = []
+    valid_features = []
+    valid_sales = []
+    for good, dataframe in good_rides.items():
+        features_array = np.array(dataframe)
+        features = features_array[:, :-1]
+        sales = features_array[:, -1:]
+        train_features.append(features[:-100])
+        train_sales.append(sales[:-100])
+        valid_features.append(features[-100:])
+        valid_sales.append(sales[-100:])
+    train_features = np.concatenate(train_features, axis=0)
+    train_sales = np.concatenate(train_sales, axis=0)
+    valid_features = np.concatenate(valid_features, axis=0)
+    valid_sales = np.concatenate(valid_sales, axis=0)
+    return train_features, train_sales, valid_features, valid_sales
+
+
+def convert_dataset_to_lstm_features(dataset):
+    dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
+    good_rides = get_dummy_dataframe(dataset, dummy_fields)
+    train_features = []
+    train_sales = []
+    valid_features = []
+    valid_sales = []
+    for good, dataframe in good_rides.items():
+        features_array = np.array(dataframe)
+        features = features_array[:, :-1]
+        sales = features_array[:, -1:]
+        train_features.append(features[:-100])
+        train_sales.append(sales[:-100])
+        valid_features.append(features[-100:])
+        valid_sales.append(sales[-100:])
+    train_features = np.concatenate(train_features, axis=0)
+    train_sales = np.concatenate(train_sales, axis=0)
+    valid_features = np.concatenate(valid_features, axis=0)
+    valid_sales = np.concatenate(valid_sales, axis=0)
+
+    return good_rides
 
 
 if __name__ == '__main__':

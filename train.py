@@ -44,22 +44,17 @@ def parse_args():
 def load_dataset(args):
     dataset = SalesDataset(args.dataset_path)
     if args.model_type == 'mlp':
-        features = convert_dataset_to_mlp_features(dataset)
+        train_X, train_y, valid_X, valid_y = convert_dataset_to_mlp_features(dataset)
     else:
-        features = convert_dataset_to_lstm_features(dataset)
-    print(features.head())
-    # example_len = len(features)
+        train_X, train_y, valid_X, valid_y = convert_dataset_to_lstm_features(dataset)
 
-    train_features = features[:-100]
-    valid_features = features[-100:]
-    train_features = np.array(train_features)
-    valid_features = np.array(valid_features)
+    train_X = torch.Tensor(train_X)
+    train_y = torch.Tensor(train_y)
+    valid_X = torch.Tensor(valid_X)
+    valid_y = torch.Tensor(valid_y)
 
-    train_features = torch.Tensor(train_features)
-    valid_features = torch.Tensor(valid_features)
-
-    train_dataset = TensorDataset(train_features[:, :-1], train_features[:, -1:])
-    valid_dataset = TensorDataset(valid_features[:, :-1], valid_features[:, -1:])
+    train_dataset = TensorDataset(train_X, train_y)
+    valid_dataset = TensorDataset(valid_X, valid_y)
 
     train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     valid_dataloader = DataLoader(valid_dataset, batch_size=32, shuffle=False)
