@@ -35,6 +35,7 @@ def parse_args():
     ''' Train Hyper Parameter '''
     parser.add_argument('--lr', type=float, default=3e-4)
     parser.add_argument('--epoch', type=int, default=10)
+    parser.add_argument('--loss', choices=['smoothl1', 'l1', 'mse'], default='l1')
 
     args = parser.parse_args()
     # args = vars(args)
@@ -56,8 +57,8 @@ def load_dataset(args):
     train_dataset = TensorDataset(train_X, train_y)
     valid_dataset = TensorDataset(valid_X, valid_y)
 
-    train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    valid_dataloader = DataLoader(valid_dataset, batch_size=32, shuffle=False)
+    train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=64, shuffle=False)
     return train_dataloader, valid_dataloader
 
 
@@ -80,7 +81,12 @@ if __name__ == '__main__':
     model.to(device)
 
     optimizer = AdamW(model.parameters(), lr=args.lr)
-    loss_fun = nn.SmoothL1Loss()
+    loss_switch = {
+        'smoothl1': nn.SmoothL1Loss,
+        'l1': nn.L1Loss,
+        'mse': nn.MSELoss
+    }
+    loss_fun = loss_switch[args.loss]()
 
     best_rmse = 1e9
     best_mae = 1e9
@@ -96,7 +102,7 @@ if __name__ == '__main__':
             total_loss.append(loss.item())
             loss.backward()
             optimizer.step()
-        print(f'loss: {np.average(total_loss)}')
+        print(f'loss: {np.round(np.average(total_loss), 10)}')
         model.eval()
         with torch.no_grad():
             preds = []
@@ -111,14 +117,14 @@ if __name__ == '__main__':
                 golds.extend(sales)
             rmse = mean_squared_error(golds, preds, squared=False)
             mae = mean_absolute_error(golds, preds)
-            print(f'rmse: {np.round(rmse, 4)}, mae: {np.round(mae, 4)}')
+            print(f'rmse: {np.round(rmse, 6)}, mae: {np.round(mae, 6)}')
             if rmse < best_rmse:
                 best_rmse = rmse
                 torch.save(model.state_dict(), os.path.join(args.save_dir, 'best_rmse.pth'))
             if mae < best_mae:
                 best_mae = mae
                 torch.save(model.state_dict(), os.path.join(args.save_dir, 'best_mae.pth'))
-            print(f'best rmse: {np.round(best_rmse, 4)}, best mae: {np.round(best_mae, 4)}')
+            print(f'best rmse: {np.round(best_rmse, 6)}, best mae: {np.round(best_mae, 6)}')
         model.train()
 
 

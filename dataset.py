@@ -67,7 +67,7 @@ def get_dummy_dataframe(dataset, dummy_fields):
     return good_rides
 
 
-def convert_dataset_to_mlp_features(dataset):
+def convert_dataset_to_mlp_features(dataset, valid_num=50):
     # print(dataset.head())
     dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
     good_rides = get_dummy_dataframe(dataset, dummy_fields)
@@ -79,10 +79,18 @@ def convert_dataset_to_mlp_features(dataset):
         features_array = np.array(dataframe)
         features = features_array[:, :-1]
         sales = features_array[:, -1:]
-        train_features.append(features[:-100])
-        train_sales.append(sales[:-100])
-        valid_features.append(features[-100:])
-        valid_sales.append(sales[-100:])
+
+        tX, vX, ty, vy = train_test_split(features, sales, test_size=0.1)
+        train_features.append(tX)
+        train_sales.append(ty)
+        valid_features.append(vX)
+        valid_sales.append(vy)
+        '''
+        train_features.append(features[:-valid_num])
+        train_sales.append(sales[:-valid_num])
+        valid_features.append(features[-valid_num:])
+        valid_sales.append(sales[-valid_num:])
+        '''
     train_features = np.concatenate(train_features, axis=0)
     train_sales = np.concatenate(train_sales, axis=0)
     valid_features = np.concatenate(valid_features, axis=0)
@@ -90,7 +98,7 @@ def convert_dataset_to_mlp_features(dataset):
     return train_features, train_sales, valid_features, valid_sales
 
 
-def convert_dataset_to_lstm_features(dataset):
+def convert_dataset_to_lstm_features(dataset, valid_num=50):
     dummy_fields = ['商品一级品类', 'year', 'month', 'day', 'weekday']
     good_rides = get_dummy_dataframe(dataset, dummy_fields)
     train_features = []

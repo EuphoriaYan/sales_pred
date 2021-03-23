@@ -29,11 +29,10 @@ def load_dataset(args):
 
     # example_len = len(features)
 
-    features = features[features['商品一级品类_图书文娱'] == 1][-100:]
-    features = np.array(features)
-    features = torch.Tensor(features)
+    valid_X = torch.Tensor(valid_X[:50])
+    valid_y = torch.Tensor(valid_y[:50])
 
-    dataset = TensorDataset(features[:, :-1], features[:, -1:])
+    dataset = TensorDataset(valid_X, valid_y)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
     return dataloader
 
@@ -48,9 +47,6 @@ def parse_args():
     ''' Model Architecture '''
     parser.add_argument('--in_feature', type=int, default=68)
     parser.add_argument('--bidirectional', type=int, default=1)
-
-    ''' Train Hyper Parameter '''
-    parser.add_argument('--lr', type=float, default=3e-4)
 
     args = parser.parse_args()
     # args = vars(args)
