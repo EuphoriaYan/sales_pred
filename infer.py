@@ -12,7 +12,7 @@ import torch
 from torch import nn
 from torch.optim import Adam, AdamW, Adadelta
 from torch.utils.data import TensorDataset, DataLoader
-from dataset import SalesDataset, convert_dataset_to_features
+from dataset import SalesDataset, convert_dataset_to_mlp_features, convert_dataset_to_lstm_features
 from model import *
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.pyplot as plt
@@ -22,8 +22,11 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 def load_dataset(args):
     dataset = SalesDataset(args.dataset_path)
-    features = convert_dataset_to_features(dataset)
-    print(features.head())
+    if args.model_type == 'mlp':
+        train_X, train_y, valid_X, valid_y = convert_dataset_to_mlp_features(dataset)
+    else:
+        train_X, train_y, valid_X, valid_y = convert_dataset_to_lstm_features(dataset)
+
     # example_len = len(features)
 
     features = features[features['商品一级品类_图书文娱'] == 1][-100:]

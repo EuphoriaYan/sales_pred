@@ -96,7 +96,7 @@ if __name__ == '__main__':
             total_loss.append(loss.item())
             loss.backward()
             optimizer.step()
-        print(f'loss: {np.round(np.average(total_loss), 4)}')
+        print(f'loss: {np.average(total_loss)}')
         model.eval()
         with torch.no_grad():
             preds = []
