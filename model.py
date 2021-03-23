@@ -56,5 +56,37 @@ class lstm(nn.Module):
         return x
 
 
+class lstm_attn(nn.Module):
+    def __init__(self, in_feature, bidirectional, **kwargs):
+        super().__init__()
+        self.in_feature = in_feature
+        self.bidirectional = True if bidirectional else False
+        self.linear1 = nn.Linear(in_feature, in_feature)
+        self.RNN = nn.LSTM(
+            input_size=in_feature,
+            hidden_size=in_feature,
+            batch_first=True,
+            bidirectional=self.bidirectional
+        )
+        if self.bidirectional:
+            self.linear2 = nn.Linear(in_feature * 2, 1)
+        else:
+            self.linear2 = nn.Linear(in_feature, 1)
+
+
+    def forward(self, input):
+        x = self.linear1(input)
+        x, (hn, cn) = self.RNN(x)
+        if self.bidirectional:
+            hn = hn.view(-1, self.in_feature * 2, 1)
+        else:
+            hn = hn.view(-1, self.in_feature, 1)
+        attn_weights = torch.bmm(x, hn)
+        attn_weights = torch.softmax(attn_weights, dim=1)
+        x = x * attn_weights
+        x = self.linear2(x)
+        return x
+
+
 if __name__ == '__main__':
     pass

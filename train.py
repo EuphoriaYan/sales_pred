@@ -67,6 +67,7 @@ def load_model(args):
     switch = {
         'mlp': mlp,
         'lstm': lstm,
+        'lstm_attn': lstm_attn
     }
     model = switch[args.model_type](**vars(args))
     return model
