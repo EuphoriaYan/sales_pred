@@ -47,8 +47,10 @@ def load_dataset(args):
     dataset = SalesDataset(args.dataset_path)
     if args.model_type == 'mlp':
         train_X, train_y, valid_X, valid_y = convert_dataset_to_mlp_features(dataset)
-    else:
+    elif 'lstm' in args.model_type:
         train_X, train_y, valid_X, valid_y = convert_dataset_to_lstm_features(dataset)
+    else:
+        raise ValueError
 
     train_X = torch.Tensor(train_X)
     train_y = torch.Tensor(train_y)
@@ -83,6 +85,7 @@ if __name__ == '__main__':
     model.to(device)
 
     optimizer = AdamW(model.parameters(), lr=args.lr)
+    # 三种loss，不同之处可以自行百度，个人相对推荐l1，但容易过拟合一些
     loss_switch = {
         'smoothl1': nn.SmoothL1Loss,
         'l1': nn.L1Loss,
@@ -105,6 +108,7 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
         print(f'epoch {epoch_idx + 1}/{args.epoch} loss: {np.round(np.average(total_loss), 10)}')
+        # 一个epoch完成，开始做验证
         model.eval()
         with torch.no_grad():
             preds = []
@@ -117,9 +121,11 @@ if __name__ == '__main__':
                 pred = pred.detach().squeeze(-1).cpu().tolist()
                 preds.extend(pred)
                 golds.extend(sales)
+            # 使用RMSE和MAE两种指标
             rmse = mean_squared_error(golds, preds, squared=False)
             mae = mean_absolute_error(golds, preds)
             print(f'rmse: {np.round(rmse, 6)}, mae: {np.round(mae, 6)}')
+            # 如果指标更优秀，则更新指标同时保存模型
             if rmse < best_rmse:
                 best_rmse = rmse
                 torch.save(model.state_dict(), os.path.join(args.save_dir, args.model_type + '_best_rmse.pth'))

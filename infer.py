@@ -48,8 +48,8 @@ def load_dataset(args):
     else:
         raise ValueError
 
-    # example_len = len(features)
-
+    # 如果是lstm，只取一个，因为lstm每一个输入都是一个长度为30的序列；
+    # 如果是mlp，可以取一段，例如valid_X[:50], valid_y[:50]这样子
     valid_X = torch.Tensor(valid_X[:1])
     valid_y = torch.Tensor(valid_y[:1])
 
@@ -69,7 +69,7 @@ def load_model(args):
 
 
 if __name__ == '__main__':
-    args = parse_args()
+    args = parse_args()  # 读取命令行参数
     dataloader = load_dataset(args)
 
     model = load_model(args)

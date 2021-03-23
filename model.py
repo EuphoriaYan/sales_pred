@@ -9,7 +9,7 @@ import sys
 import torch
 from torch import nn
 
-
+# 很简单的3层mlp
 class mlp(nn.Module):
     def __init__(self, in_feature, **kwargs):
         super().__init__()
@@ -31,7 +31,7 @@ class mlp(nn.Module):
         x = self.linear3(x)
         return x
 
-
+# 很简单的单层LSTM
 class lstm(nn.Module):
     def __init__(self, in_feature, bidirectional, **kwargs):
         super().__init__()
@@ -55,7 +55,8 @@ class lstm(nn.Module):
         x = self.linear2(x)
         return x
 
-
+# 带Attn的单层LSTM， linear1可能可以去掉，可以自己做一下实验对比
+# 也可以做一下单双向lstm的对比
 class lstm_attn(nn.Module):
     def __init__(self, in_feature, bidirectional, **kwargs):
         super().__init__()
@@ -68,20 +69,21 @@ class lstm_attn(nn.Module):
             batch_first=True,
             bidirectional=self.bidirectional
         )
+        # 用独立矩阵来做attn的方案会有问题，注释掉了
         if self.bidirectional:
-            self.w = nn.Parameter(torch.Tensor(in_feature * 2, in_feature * 2))
-            self.u = nn.Parameter(torch.Tensor(in_feature * 2, 1))
+            # self.w = nn.Parameter(torch.Tensor(in_feature * 2, in_feature * 2))
+            # self.u = nn.Parameter(torch.Tensor(in_feature * 2, 1))
             self.linear2 = nn.Linear(in_feature * 2, 1)
         else:
-            self.w = nn.Parameter(torch.Tensor(in_feature, in_feature))
-            self.u = nn.Parameter(torch.Tensor(in_feature, 1))
+            # self.w = nn.Parameter(torch.Tensor(in_feature, in_feature))
+            # self.u = nn.Parameter(torch.Tensor(in_feature, 1))
             self.linear2 = nn.Linear(in_feature, 1)
 
 
     def forward(self, input):
         x = self.linear1(input)
         x, (hn, cn) = self.RNN(x)
-
+        # 这里用的是用hidden state来做attn的方案
         if self.bidirectional:
             hn = hn.view(-1, self.in_feature * 2, 1)
         else:
@@ -90,12 +92,14 @@ class lstm_attn(nn.Module):
         attn_weights = torch.softmax(attn, dim=1)
         x = x * attn_weights
 
+        # 用独立矩阵来做attn的方案会有问题，注释掉了
         '''
         u = torch.tanh(torch.matmul(x, self.w))
         attn = torch.matmul(u, self.u)
         attn_weights = torch.softmax(attn, dim=1)
         x = x * attn_weights
         '''
+
         x = self.linear2(x)
         return x
 
