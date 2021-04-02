@@ -24,7 +24,7 @@ class SalesDataset(Dataset):
         Args:
             file (string): Path to the file with annotations.
         """
-        frame = pd.read_excel(file)
+        frame = pd.read_excel(file, engine="openpyxl")
         frame['data'] = pd.to_datetime(frame['日期'], format='%Y%m%d')
         frame['year'] = frame['data'].dt.year
         frame['month'] = frame['data'].dt.month
