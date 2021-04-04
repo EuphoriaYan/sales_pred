@@ -117,6 +117,10 @@ def convert_dataset_to_lstm_features(dataset, seq_length=30, valid_size=0.1):
     valid_features = []
     valid_sales = []
     for good, dataframe in good_rides.items():
+        # 训练的时候，这两行注释掉
+        # 针对某一个品类进行infer的时候，把这两行加上
+        # if good != '图书':
+        #     continue
         features_array = np.array(dataframe)
         features = features_array[:, :-1]
         sales = features_array[:, -1:]
