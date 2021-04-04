@@ -40,16 +40,18 @@ class lstm(nn.Module):
         self.relu = nn.ReLU()
         self.linear1 = nn.Linear(in_feature, in_feature)
         self.dropout1 = nn.Dropout(p=0.1)
+        hidden_size = in_feature
         self.RNN = nn.LSTM(
             input_size=in_feature,
-            hidden_size=in_feature,
+            hidden_size=hidden_size,
             batch_first=True,
-            bidirectional=self.bidirectional
+            bidirectional=self.bidirectional,
+            num_layers=1
         )
         if bidirectional:
-            self.linear2 = nn.Linear(in_feature * 2, 1)
+            self.linear2 = nn.Linear(hidden_size * 2, 1)
         else:
-            self.linear2 = nn.Linear(in_feature, 1)
+            self.linear2 = nn.Linear(hidden_size, 1)
 
     def forward(self, input):
         x = self.linear1(input)
